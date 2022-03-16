@@ -47,6 +47,7 @@ public class ArticleControl {
     public PageInfo<Article> articleList(int page, int pagesize, String title, HttpSession session){
         System.out.println(456);
         System.out.println(789);
+        System.out.println(465789);
         PageHelper.startPage(page,pagesize);
         User user = (User) session.getAttribute("user");
         List<Article> list=articleService.searchList(title,user);
