@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="com.cumt.blog.back.control,com.cumt.blog.base.controller"/>
+    <mvc:default-servlet-handler/>
+    <mvc:resources mapping="/js/**" location="/js/"/>
+    <mvc:resources mapping="/bootstrap-3.3.7-dist/**" location="/bootstrap-3.3.7-dist/"/>
+    <mvc:resources mapping="/editormd/**" location="/editormd/"/>
+    <mvc:resources mapping="/font-awesome-4.7.0/**" location="/font-awesome-4.7.0/"/>
+    <mvc:resources mapping="/css/**" location="/css/" />
+    <mvc:resources mapping="/upload/**" location="/upload/" />
+    <bean  class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+    <mvc:annotation-driven/>
+
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="defaultEncoding" value="UTF-8"/>
+    </bean>
+</beans>

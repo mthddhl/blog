@@ -1,0 +1,208 @@
+    // //异步校验旧密码输入是否正确
+    // $('#oldPwd').blur(function () {
+    //     $.post("user/verifyOldPwd",{'oldPwd':$(this).val()},function (data) {
+    //         if(!data.ok){
+    //             layer.msg(data.mess, {offset:'t'});
+    //         }
+    //     },'json');
+    // });
+
+
+
+    //调用刷新方法
+    refresh(1,2);
+
+    //定义一个函数，发送请求不同页码对应的数据
+    function refresh(page,pageSize){
+        //发送查询所有文章列表的异步请求
+        $.post("/blog/article/list",{
+            'page' : page,
+            'pageSize' : pageSize,
+            'title' : $('#title').val()
+        },function (data) {
+            //设置当前文章数量
+            $('#count').text(data.total + "篇文章");
+            //清空原来的内容
+            $('#articleBody').html("");
+            //List<Article>
+            var articles = data.list;
+            for(var i =0 ; i < articles.length; i++){
+                var article = articles[i];
+                if(article.isOpen == "0"){
+                    $('#articleBody').append("<tr>\n" +
+                        "                <td><input type=\"checkbox\" class=\"input-control\" name=\"checkbox\" value=\"\" /></td>\n" +
+                        "                <td class=\"article-title\">"+article.title+"</td>\n" +
+                        "                <td>"+article.cid+"</td>\n" +
+                        "                <td class=\"hidden-sm\">"+article.tagNames+"</td>\n" +
+                        "                <td class=\"hidden-sm\">"+article.thumbsUp+"</td>\n" +
+                        "                <td>"+article.create_time+"</td>\n" +
+                        "                <td>\n" +
+                        "                    <a href=\"/blog/toView/workbench/article/updateArticle?id="+article.aid+"\">修改</a> <a onclick=\"deleteById('"+article.aid+"')\" href='javascript:void(0)'>删除</a>&nbsp;\n" +
+                        "                    <input type=\"radio\" onclick=change(\'"+article.aid+"\',$(this).val()) name="+article.aid+" value=\"1\"/>公开 <input onclick=change(\'"+article.aid+"\',$(this).val()) type=\"radio\" checked name="+article.aid+" value=\"0\" />私密\n" +
+                        "                </td>\n" +
+                        "              </tr>");
+                }else{
+                    $('#articleBody').append("<tr>\n" +
+                        "                <td><input type=\"checkbox\" class=\"input-control\" name=\"checkbox\" value=\"\" /></td>\n" +
+                        "                <td class=\"article-title\">"+article.title+"</td>\n" +
+                        "                <td>"+article.cid+"</td>\n" +
+                        "                <td class=\"hidden-sm\">"+article.tagNames+"</td>\n" +
+                        "                <td class=\"hidden-sm\">"+article.thumbsUp+"</td>\n" +
+                        "                <td>"+article.create_time+"</td>\n" +
+                        "                <td>\n" +
+                        "                    <a href=\"/blog/toView/workbench/article/updateArticle?id="+article.aid+"\">修改</a> <a onclick=\"deleteById('"+article.aid+"')\">删除</a>&nbsp;\n" +
+                        "                    <input onclick=change(\'"+article.aid+"\',$(this).val()) type=\"radio\" name="+article.aid+" value=\"1\" checked/>公开 <input onclick= change(\'"+article.aid+"\',$(this).val()) type=\"radio\" name="+article.aid+" value=\"0\" />私密\n" +
+                        "                </td>\n" +
+                        "              </tr>");
+                }
+            }
+
+            //bootstrap的分页插件
+            $("#activityPage").bs_pagination({
+                currentPage: data.pageNum, // 页码
+                rowsPerPage: data.pageSize, // 每页显示的记录条数
+                maxRowsPerPage: 20, // 每页最多显示的记录条数
+                totalPages: data.pages, // 总页数
+                totalRows: data.total, // 总记录条数
+                visiblePageLinks: 3, // 显示几个卡片
+                showGoToPage: true,
+                showRowsPerPage: true,
+                showRowsInfo: true,
+                showRowsDefaultInfo: true,
+                //回调函数，用户每次点击分页插件进行翻页的时候就会触发该函数
+                onChangePage : function(event, obj){
+                    //currentPage:当前页码 rowsPerPage:每页记录数
+                    refresh(obj.currentPage,obj.rowsPerPage);
+                }
+            });
+        },'json');
+    }
+
+
+    //点击搜索按钮，模糊查询文章数据
+    $('#search').click(function () {
+        refresh(1,3);
+    });
+
+    //定义改变是否公开函数
+    function change(aid,value) {
+       $.get("/blog/article/isOpen",{
+           'aid' : aid,
+           'isOpen' : value
+       },function (data) {
+           layer.alert(data.mess, {icon:6});
+       },'json');
+    }
+
+    //异步删除文章信息
+    function deleteById(aid) {
+       $.get("/blog/article/deleteById",{'id':aid},function (data) {
+           if(data.ok){
+               //删除成功
+               layer.alert(data.mess, {icon:6});
+               //刷新页面
+               refresh(1,3);
+           }
+       },'json');
+    }
+
+
+
+
+        var editor;
+        $(function() {
+            editor = editormd("test-editor", {
+                width  : "100%",
+                height : "500px",
+                path   : "/blog/editormd/lib/",//第三方依赖库
+                saveHTMLToTextarea : true,//获取用户编辑的内容，将其放入到textarea中
+                emoji: true,//emoji表情，默认关闭
+                syncScrolling : "single",
+                /*上传文件配置*/
+                imageUpload : true,//开启上传文件功能
+                imageFormats : ["jpg", "jpeg", "gif", "png", "bmp", "webp"],//上传图片格式
+                imageUploadURL : "/blog/editorUpload",//后端上传图片服务地址
+            });
+        });
+
+        //选中栏目后加载栏目下对应的种类
+        $('#category').change(function () {
+            //获取选中的栏目，把主键发送到后台查询
+            $.get("/blog/article/queryByCategory",
+                {'cid':$(this).val()},function (data) {
+                    $('#tags').html("");
+                for(var i = 0 ; i < data.length; i++){
+                    $('#tags').append("<input name='tid' type=\"checkbox\" value="+data[i].tname+">"+data[i].tname+" &nbsp;&nbsp;");
+                }
+            },'json');
+        });
+
+        //上传文章logo
+        //异步上传文件
+        $('#img').change(function () {
+            $.ajaxFileUpload({
+                    url: '/blog/fileUpload', //用于文件上传的服务器端请求地址
+                    fileElementId: 'img', //文件上传域的ID
+                    dataType: 'json', //返回值类型 一般设置为json
+                    success: function (data, status) {
+                        if(data.success == 1){
+                            alert(data.message);
+                            //把文章logo的url地址设置到隐藏域中
+                            $('#logo').val(data.url);
+                        }
+
+                    },
+                }
+            )
+            return false;
+        });
+
+        //异步查询所有栏目，把返回的json串拼接到下拉框中
+        $.get("/blog/article/queryCategory",function (data) {
+            //List<Category>
+            for(var i = 0; i < data.length; i++){
+                $('#categories').append("<option value="+data[i].cid+">"+data[i].cname+"</option>");
+            }
+        },'json');
+        //选中栏目，加载栏目下对应的标签
+        $('#categories').change(function () {
+            $.get("/blog/article/queryTags",{'cid':$(this).val()},function (data) {
+                //List<Tag>
+                //清空内容
+                $('#tags').html("");
+                for(var i = 0; i < data.length; i++){
+                    $('#tags').append("<input type='checkbox' value="+data[i].tname+" />"+data[i].tname+"&nbsp;&nbsp;&nbsp;");
+                }
+            },'json');
+        });
+
+        //发布文章
+        function punish() {
+            var tags = [];
+            //获取栏目标签
+            $('input[type=checkbox]:checked').each(function () {
+                tags.push($(this).val());
+            });
+            //join方法:把数组中的内容默认以,号的分割符把数组内容拼接成字符串
+            var tagNames = tags.join();
+
+           $.post("/blog/article/saveOrUpdate",{
+                'cid' : $('#categories:selected').val(),
+                'tagNames' : tagNames,
+                'title' : $('#title').val(),
+                'digest' : $('#digest').val(),
+                'logo' : $('#logo').val(),
+                'content' : $('#content').val(),
+                'isOpen' : $('input[type=radio]:checked').val()
+            },function (data) {
+                //返回resultVo
+                if(data.ok){
+                    layer.alert(data.mess, {icon:6});
+                    //发布成功，修改状态信息和发布时间
+                    $('#state').text("已发布");
+                    $('#punishTime').val(data.t.create_time);
+                    //跳转到文章列表页面
+                    location.href = "/blog/toView/workbench/article/index";
+                }
+            },'json');
+        }
