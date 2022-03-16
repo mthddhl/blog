@@ -19,7 +19,6 @@ public class UserControl {
     @ResponseBody
     public ResultVo userLogin(User user, String code, HttpSession session) {
         System.out.println(789465);
-
         ResultVo resultVo=new ResultVo();
         String rightCode= (String) session.getAttribute("code");
         try {
