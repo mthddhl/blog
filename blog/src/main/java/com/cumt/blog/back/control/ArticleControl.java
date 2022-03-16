@@ -45,6 +45,7 @@ public class ArticleControl {
     @RequestMapping("/article/list")
     @ResponseBody
     public PageInfo<Article> articleList(int page, int pagesize, String title, HttpSession session){
+        System.out.println(456);
         System.out.println(123);
         PageHelper.startPage(page,pagesize);
         User user = (User) session.getAttribute("user");
